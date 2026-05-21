@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinTrack Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <div class="logo">
+          <span class="logo-icon">💰</span>
+          <span class="logo-name">FinTrack <span class="logo-pro">Pro</span></span>
+        </div>
+        <nav class="navbar" id="navbar">
+          <button class="nav-btn active" data-page="dashboard">Dashboard</button>
+          <button class="nav-btn" data-page="transactions">Transactions</button>
+          <button class="nav-btn" data-page="analytics">Analytics</button>
+          <button class="nav-btn" data-page="split">Split Bills</button>
+          <button class="nav-btn" data-page="tools">Tools</button>
+        </nav>
+      </div>
+      <div class="header-right">
+        <select id="currencySelect" class="currency-select">
+          <option value="INR">🇮🇳 INR</option>
+          <option value="USD">🇺🇸 USD</option>
+          <option value="EUR">🇪🇺 EUR</option>
+          <option value="GBP">🇬🇧 GBP</option>
+        </select>
+        <div class="divider"></div>
+        <button class="btn-outline btn-small btn-danger" id="resetAllBtn" title="Reset everything">🔄 Reset</button>
+        <label class="theme-toggle" title="Toggle theme">
+          <input type="checkbox" id="themeToggleBtn" />
+          <span class="theme-track">
+            <span class="theme-thumb"></span>
+          </span>
+        </label>
+        <div class="divider"></div>
+        <div class="user-avatar" id="avatarBtn" title="View Profile">A</div>
+        <button class="hamburger" id="hamburgerBtn" title="Menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <div id="alert" class="alert hidden"></div>
+
+    <!-- DASHBOARD -->
+    <section id="page-dashboard" class="page active">
+
+      <div class="page-top">
+        <div>
+          <h1 class="page-name" id="greetText">Good morning</h1>
+          <p class="page-desc" id="dashDate"></p>
+        </div>
+        <div>
+          <span class="balance-label">Net Balance</span>
+          <span class="balance-value" id="dashBalance">₹0.00</span>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-top">
+            <span class="stat-label">Total Income</span>
+            <span class="stat-icon badge-green">+</span>
+          </div>
+          <div class="stat-value green" id="dashIncome">₹0.00</div>
+          <div class="stat-note">All time earnings</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-top">
+            <span class="stat-label">Total Expenses</span>
+            <span class="stat-icon badge-red">−</span>
+          </div>
+          <div class="stat-value red" id="dashExpense">₹0.00</div>
+          <div class="stat-note">All time spending</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-top">
+            <span class="stat-label">Savings Rate</span>
+            <span class="stat-icon badge-blue">%</span>
+          </div>
+          <div class="stat-value blue" id="dashSavingsRate">0%</div>
+          <div class="stat-note">Of income retained</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-top">
+            <span class="stat-label">Monthly Budget</span>
+          </div>
+          <div class="budget-row">
+            <input type="number" id="budgetInput" class="input" placeholder="Set amount" min="0" />
+            <button class="btn-solid btn-small" id="setBudgetBtn">Set</button>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" id="budgetBar"></div>
+          </div>
+          <span id="budgetStatus" class="stat-note"></span>
+        </div>
+      </div>
+
+
+      <div class="section-bar">
+        <h2 class="section-name">Add Transaction</h2>
+        <button class="btn-outline btn-small" id="micBtn">🎤 Voice Input</button>
+      </div>
+      <p id="micStatus" class="hint"></p>
+      <p id="micTranscript" class="hint text-blue"></p>
+
+      <div id="voiceBox" class="voice-box hidden">
+        <p class="section-name" style="margin-bottom:10px;font-size:.85rem">Detected Transaction</p>
+        <div id="voicePreviewContent"></div>
+        <div class="form-actions" style="margin-top:12px">
+          <button class="btn-solid" id="confirmVoiceBtn">Confirm &amp; Add</button>
+          <button class="btn-outline btn-danger" id="discardVoiceBtn">Discard</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <form id="txForm" novalidate>
+          <div class="input-grid">
+            <div class="field">
+              <label class="label" for="desc">Description <span class="req">*</span></label>
+              <input class="input" type="text" id="desc" placeholder="e.g. Grocery shopping" required autocomplete="off" />
+              <span class="error-msg" id="descErr"></span>
+            </div>
+            <div class="field">
+              <label class="label" for="amount">Amount (<span class="currency-symbol">₹</span>) <span class="req">*</span></label>
+              <input class="input" type="number" id="amount" placeholder="0.00" min="0.01" step="0.01" required />
+              <span class="error-msg" id="amountErr"></span>
+            </div>
+            <div class="field">
+              <label class="label" for="category">Category</label>
+              <select class="input" id="category">
+                <option value="Food">Food</option>
+                <option value="Travel">Travel</option>
+                <option value="Rent">Rent</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Health">Health</option>
+                <option value="Education">Education</option>
+                <option value="Salary">Salary</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="label" for="txDate">Date <span class="req">*</span></label>
+              <input class="input" type="date" id="txDate" required />
+            </div>
+            <div class="field">
+              <label class="label">Type</label>
+              <div class="type-switch">
+                <button type="button" id="btnIncome" class="switch-btn">Income</button>
+                <button type="button" id="btnExpense" class="switch-btn active">Expense</button>
+              </div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-solid">Add Transaction</button>
+          </div>
+        </form>
+      </div>
+
+
+      <div class="section-bar">
+        <h2 class="section-name">Recent Transactions</h2>
+        <button class="btn-outline btn-small" id="viewAllTxBtn">View All →</button>
+      </div>
+      <div class="card card-plain" id="historyTable"></div>
+
+
+      <div class="insights-row">
+        <div class="insight-box">
+          <span class="insight-emoji">🏆</span>
+          <div>
+            <p class="insight-name">Top Category</p>
+            <p class="insight-value" id="insightTopCat">—</p>
+          </div>
+        </div>
+        <div class="insight-box">
+          <span class="insight-emoji">📅</span>
+          <div>
+            <p class="insight-name">This Month</p>
+            <p class="insight-value" id="insightMonthTx">0 transactions</p>
+          </div>
+        </div>
+        <div class="insight-box">
+          <span class="insight-emoji">📉</span>
+          <div>
+            <p class="insight-name">Biggest Expense</p>
+            <p class="insight-value" id="insightBigExp">—</p>
+          </div>
+        </div>
+        <div class="insight-box">
+          <span class="insight-emoji">📈</span>
+          <div>
+            <p class="insight-name">Avg Daily Spend</p>
+            <p class="insight-value" id="insightAvgSpend">—</p>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="section-bar">
+        <h2 class="section-name">💡 Smart Tips</h2>
+      </div>
+      <div class="tips" id="smartTips"></div>
+
+    </section>
+
+
+    <section id="page-transactions" class="page" hidden>
+      <div class="page-top">
+        <div>
+          <h1 class="page-name">Transactions</h1>
+          <p class="page-desc">Manage your income and expenses</p>
+        </div>
+        <div>
+          <span class="balance-label">Net Balance</span>
+          <span class="balance-value" id="txPageBalance">₹0.00</span>
+        </div>
+      </div>
+
+      <div class="quick-stats">
+        <div class="quick-stat">
+          <span class="stat-label">Income</span>
+          <span class="stat-value green" id="msIncome">₹0.00</span>
+        </div>
+        <div class="quick-stat">
+          <span class="stat-label">Expense</span>
+          <span class="stat-value red" id="msExpense">₹0.00</span>
+        </div>
+        <div class="quick-stat">
+          <span class="stat-label">Balance</span>
+          <span class="stat-value blue" id="msBalance">₹0.00</span>
+        </div>
+      </div>
+
+      <div class="section-bar">
+        <h2 class="section-name">Add Transaction</h2>
+        <button class="btn-outline btn-small" id="micBtnTx">🎤 Voice Input</button>
+      </div>
+      <div class="card">
+        <form id="txForm2" novalidate>
+          <div class="input-grid">
+            <div class="field">
+              <label class="label" for="desc2">Description <span class="req">*</span></label>
+              <input class="input" type="text" id="desc2" placeholder="e.g. Grocery shopping" required autocomplete="off" />
+              <span class="error-msg" id="descErr2"></span>
+            </div>
+            <div class="field">
+              <label class="label" for="amount2">Amount (<span class="currency-symbol">₹</span>) <span class="req">*</span></label>
+              <input class="input" type="number" id="amount2" placeholder="0.00" min="0.01" step="0.01" required />
+              <span class="error-msg" id="amountErr2"></span>
+            </div>
+            <div class="field">
+              <label class="label" for="category2">Category</label>
+              <select class="input" id="category2">
+                <option value="Food">Food</option>
+                <option value="Travel">Travel</option>
+                <option value="Rent">Rent</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Health">Health</option>
+                <option value="Education">Education</option>
+                <option value="Salary">Salary</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="label" for="txDate2">Date <span class="req">*</span></label>
+              <input class="input" type="date" id="txDate2" required />
+            </div>
+            <div class="field">
+              <label class="label">Type</label>
+              <div class="type-switch">
+                <button type="button" id="btnIncome2" class="switch-btn">Income</button>
+                <button type="button" id="btnExpense2" class="switch-btn active">Expense</button>
+              </div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-solid">Add Transaction</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="section-bar">
+        <h2 class="section-name">History</h2>
+        <div class="section-tools">
+          <input type="search" class="input search" id="searchBox2" placeholder="Search..." />
+          <select class="input select-small" id="filterType2">
+            <option value="all">All types</option>
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+          <select class="input select-small" id="filterCat2">
+            <option value="all">All categories</option>
+            <option value="Food">Food</option>
+            <option value="Travel">Travel</option>
+            <option value="Rent">Rent</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Health">Health</option>
+            <option value="Education">Education</option>
+            <option value="Salary">Salary</option>
+            <option value="Other">Other</option>
+          </select>
+          <button class="btn-outline btn-small" id="exportBtn2">Export CSV</button>
+        </div>
+      </div>
+      <div class="card card-plain" id="historyTable2"></div>
+    </section>
+
+
+    <section id="page-analytics" class="page" hidden>
+      <div class="page-top">
+        <div>
+          <h1 class="page-name">Analytics</h1>
+          <p class="page-desc">Deep dive into your spending patterns</p>
+        </div>
+        <div>
+          <span class="balance-label">Current Balance</span>
+          <span class="balance-value" id="heroBalance">₹0.00</span>
+          <span class="hint" id="heroSub"></span>
+        </div>
+      </div>
+      <div class="charts-grid">
+        <div class="card chart-card">
+          <p class="chart-title">Category Breakdown</p>
+          <div class="chart-area"><canvas id="donutChart2"></canvas></div>
+        </div>
+        <div class="card chart-card">
+          <p class="chart-title">Monthly Income vs Expense</p>
+          <div class="chart-area"><canvas id="barChart2"></canvas></div>
+        </div>
+      </div>
+      <div class="card chart-card-wide">
+        <p class="chart-title">Balance Trend</p>
+        <div class="chart-area-wide"><canvas id="lineChart2"></canvas></div>
+      </div>
+      <div class="card card-plain">
+        <div class="card-header"><span class="chart-title">Category Summary</span></div>
+        <div id="catSummary2"></div>
+      </div>
+    </section>
+
+
+    <section id="page-split" class="page" hidden>
+      <div class="page-top">
+        <div>
+          <h1 class="page-name">Split Groups</h1>
+          <p class="page-desc">Split bills equally with friends</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="input-grid grid-3">
+          <div class="field">
+            <label class="label" for="groupName2">Group Name</label>
+            <input class="input" type="text" id="groupName2" placeholder="e.g. Goa Trip" />
+          </div>
+          <div class="field">
+            <label class="label" for="groupMembers2">Members</label>
+            <input class="input" type="text" id="groupMembers2" placeholder="Rahul, Priya, Ankit" />
+            <div class="quick-add">
+              <span class="quick-add-label">Quick add:</span>
+              <button type="button" class="quick-btn" data-target="groupMembers2" data-members="Papa, Mummy, Bhai, Didi">🏠 Ghar</button>
+              <button type="button" class="quick-btn" data-target="groupMembers2" data-members="Rahul, Priya, Ankit, Neha">👫 Friends</button>
+              <button type="button" class="quick-btn" data-target="groupMembers2" data-members="Boss, Colleague 1, Colleague 2">💼 Office</button>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="groupAmount2">Total Amount (<span class="currency-symbol">₹</span>)</label>
+            <input class="input" type="number" id="groupAmount2" placeholder="3000" min="0" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-solid" id="createSplitBtn2">Create &amp; Split</button>
+        </div>
+      </div>
+
+      <div class="card card-plain" id="splitResults2"></div>
+    </section>
+
+
+    <section id="page-tools" class="page" hidden>
+      <div class="page-top">
+        <div>
+          <h1 class="page-name">Tools</h1>
+          <p class="page-desc">Handy calculators and utilities</p>
+        </div>
+      </div>
+
+      <div class="tools-row">
+        <div class="card">
+          <p class="chart-title" style="margin-bottom:6px">📈 Future Growth Predictor</p>
+          <p class="hint" style="margin-bottom:16px">Recursive compound interest — see how your savings grow year by year.</p>
+          <div class="input-grid grid-3">
+            <div class="field">
+              <label class="label" for="tPrincipal">Principal (<span class="currency-symbol">₹</span>)</label>
+              <input class="input" type="number" id="tPrincipal" placeholder="10000" min="0" />
+            </div>
+            <div class="field">
+              <label class="label" for="tRate">Annual Rate (%)</label>
+              <input class="input" type="number" id="tRate" placeholder="8" min="0" />
+            </div>
+            <div class="field">
+              <label class="label" for="tYears">Years</label>
+              <input class="input" type="number" id="tYears" placeholder="5" min="1" />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-solid" id="tCalcGrowthBtn">Calculate</button>
+          </div>
+          <div id="tGrowthResult"></div>
+          <canvas id="tGrowthChart" class="hidden" style="margin-top:16px;max-height:230px"></canvas>
+        </div>
+
+        <div class="card">
+          <p class="chart-title" style="margin-bottom:6px">🎤 Voice Input</p>
+          <p class="hint" style="margin-bottom:16px">Say something like "Add 500 rupees expense for food" — review and confirm before saving.</p>
+          <button class="btn-outline" id="micBtnToolsPage">🎤 Start Listening</button>
+          <p id="micStatusTools" class="hint" style="margin-top:10px"></p>
+          <p id="micTranscriptTools" class="hint text-blue"></p>
+          <div id="voiceBoxTools" class="voice-box hidden" style="margin-top:12px">
+            <p class="section-name" style="margin-bottom:10px;font-size:.85rem">Detected Transaction</p>
+            <div id="voicePreviewContentTools"></div>
+            <div class="form-actions" style="margin-top:12px">
+              <button class="btn-solid" id="confirmVoiceBtnTools">Confirm &amp; Add</button>
+              <button class="btn-outline btn-danger" id="discardVoiceBtnTools">Discard</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="chart-title" style="margin-bottom:6px">🏦 EMI Calculator</p>
+          <p class="hint" style="margin-bottom:16px">Calculate monthly EMI for any loan.</p>
+          <div class="input-grid grid-3">
+            <div class="field">
+              <label class="label" for="emiLoan">Loan Amount (<span class="currency-symbol">₹</span>)</label>
+              <input class="input" type="number" id="emiLoan" placeholder="500000" min="0" />
+            </div>
+            <div class="field">
+              <label class="label" for="emiRate">Interest Rate (% p.a.)</label>
+              <input class="input" type="number" id="emiRate" placeholder="8.5" min="0" step="0.1" />
+            </div>
+            <div class="field">
+              <label class="label" for="emiMonths">Tenure (months)</label>
+              <input class="input" type="number" id="emiMonths" placeholder="60" min="1" />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-solid" id="calcEmiBtn">Calculate EMI</button>
+          </div>
+          <div id="emiResult"></div>
+        </div>
+
+        <div class="card">
+          <p class="chart-title" style="margin-bottom:6px">🎯 Savings Goal Tracker</p>
+          <p class="hint" style="margin-bottom:16px">How much do you need to save per month to reach your goal?</p>
+          <div class="input-grid grid-3">
+            <div class="field">
+              <label class="label" for="goalTarget">Target Amount (<span class="currency-symbol">₹</span>)</label>
+              <input class="input" type="number" id="goalTarget" placeholder="100000" min="0" />
+            </div>
+            <div class="field">
+              <label class="label" for="goalSaved">Already Saved (<span class="currency-symbol">₹</span>)</label>
+              <input class="input" type="number" id="goalSaved" placeholder="20000" min="0" />
+            </div>
+            <div class="field">
+              <label class="label" for="goalMonths">Months to Goal</label>
+              <input class="input" type="number" id="goalMonths" placeholder="12" min="1" />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-solid" id="calcGoalBtn">Calculate</button>
+          </div>
+          <div id="goalResult"></div>
+        </div>
+      </div>
+    </section>
+
+
+    <section id="page-profile" class="page" hidden>
+      <div class="page-top">
+        <div>
+          <h1 class="page-name">My Profile</h1>
+          <p class="page-desc">Manage your account and preferences</p>
+        </div>
+      </div>
+
+      <div class="profile-banner card">
+        <div class="profile-info">
+          <div class="profile-avatar" id="profileAvatarDisplay">A</div>
+          <div class="profile-avatar-info">
+            <h2 class="profile-name" id="profileNameDisplay">Anonymous User</h2>
+            <p class="profile-email" id="profileEmailDisplay">user@fintrack.pro</p>
+            <span class="profile-badge">🟢 Active</span>
+          </div>
+        </div>
+        <div class="profile-numbers">
+          <div class="profile-number">
+            <span class="profile-number-val" id="profileTxCount">0</span>
+            <span class="profile-number-label">Transactions</span>
+          </div>
+          <div class="profile-number">
+            <span class="profile-number-val green" id="profileTotalIncome">₹0</span>
+            <span class="profile-number-label">Total Income</span>
+          </div>
+          <div class="profile-number">
+            <span class="profile-number-val red" id="profileTotalExpense">₹0</span>
+            <span class="profile-number-label">Total Expense</span>
+          </div>
+          <div class="profile-number">
+            <span class="profile-number-val blue" id="profileNetBalance">₹0</span>
+            <span class="profile-number-label">Net Balance</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-cards">
+        <div class="card">
+          <p class="chart-title" style="margin-bottom:18px">Edit Profile</p>
+          <div class="field" style="margin-bottom:12px">
+            <label class="label" for="profileName">Full Name</label>
+            <input class="input" type="text" id="profileName" placeholder="Your name" />
+          </div>
+          <div class="field" style="margin-bottom:12px">
+            <label class="label" for="profileEmail">Email</label>
+            <input class="input" type="email" id="profileEmail" placeholder="you@example.com" />
+          </div>
+          <div class="field" style="margin-bottom:16px">
+            <label class="label" for="profilePhone">Phone</label>
+            <input class="input" type="tel" id="profilePhone" placeholder="+91 00000 00000" />
+          </div>
+          <button class="btn-solid" id="saveProfileBtn">Save Changes</button>
+          <p id="profileSaveMsg" class="hint" style="margin-top:8px;color:#22c55e"></p>
+        </div>
+
+        <div class="card">
+          <p class="chart-title" style="margin-bottom:18px">Preferences</p>
+          <div class="field" style="margin-bottom:12px">
+            <label class="label" for="profileCurrency">Default Currency</label>
+            <select class="input" id="profileCurrency">
+              <option value="INR">🇮🇳 INR — Indian Rupee</option>
+              <option value="USD">🇺🇸 USD — US Dollar</option>
+              <option value="EUR">🇪🇺 EUR — Euro</option>
+              <option value="GBP">🇬🇧 GBP — British Pound</option>
+            </select>
+          </div>
+          <div class="field" style="margin-bottom:12px">
+            <label class="label">Monthly Budget</label>
+            <div class="budget-row">
+              <input type="number" class="input" id="profileBudget" placeholder="Set budget" min="0" />
+              <button class="btn-solid btn-small" id="saveProfileBudgetBtn">Set</button>
+            </div>
+            <p class="hint" style="margin-top:4px" id="profileBudgetStatus"></p>
+          </div>
+          <div class="pref-item">
+            <span class="label" style="margin:0">Budget Alerts</span>
+            <label class="switch">
+              <input type="checkbox" id="prefAlerts" checked />
+              <span class="switch-track"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="chart-title" style="margin-bottom:18px">Account Stats</p>
+          <div class="stats-list" id="profileStatList"></div>
+        </div>
+
+        <div class="card card-danger">
+          <p class="chart-title" style="margin-bottom:6px;color:#ef4444">Danger Zone</p>
+          <p class="hint" style="margin-bottom:16px">These actions are permanent and cannot be undone.</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <button class="btn-outline btn-danger" id="exportBtnProfile">📤 Export All Data (CSV)</button>
+            <button class="btn-outline btn-danger" id="clearAllBtnProfile">🗑️ Clear All Transactions</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-main">
+        <div class="footer-about">
+          <div class="footer-brand">💰 FinTrack <span class="logo-pro">Pro</span></div>
+          <p class="footer-desc">Track smarter. Save better.<br>Your personal finance companion.</p>
+          <div class="footer-tags">
+            <span class="footer-tag">🔒 Secure</span>
+            <span class="footer-tag">💾 Local Storage</span>
+            <span class="footer-tag">📊 Charts</span>
+          </div>
+        </div>
+        <div class="footer-col">
+          <p class="footer-heading">Features</p>
+          <ul class="footer-nav">
+            <li>Transaction Tracking</li>
+            <li>Budget Alerts</li>
+            <li>Analytics &amp; Charts</li>
+            <li>Split Bills</li>
+            <li>Growth Predictor</li>
+            <li>Voice Input</li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <p class="footer-heading">Currencies</p>
+          <ul class="footer-nav">
+            <li>🇮🇳 Indian Rupee (INR)</li>
+            <li>🇺🇸 US Dollar (USD)</li>
+            <li>🇪🇺 Euro (EUR)</li>
+            <li>🇬🇧 British Pound (GBP)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-base">
+        <span>© 2026 FinTrack Pro. All rights reserved.</span>
+        <span>Built with JavaScript ES6+ · No frameworks · No backend</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
