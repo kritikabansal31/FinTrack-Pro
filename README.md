@@ -5,8 +5,8 @@ FinTrack Pro is a web-based finance management app that helps users record incom
 ## Team Members
 
 1. Kritika Bansal - Team Leader
-2. Bhoomi - Team Member
-3. Deepanshi Sharma - Team Member
+2. Bhoomi - Team Member 1
+3. Deepanshi Sharma - Team Member 2
 
 
 ## Project Features
